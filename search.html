@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Search</title>
+    <style>
+        /* CSS styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+        }
+
+        .search-container {
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+
+        .search-container h2 {
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        #searchResults {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #searchResults li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        #searchResults li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <h2>User Search</h2>
+        <input type="text" id="searchInput" placeholder="Search for a user...">
+        <ul id="searchResults">
+        </ul>
+    </div>
+
+    <script>
+        const users = ['User 1', 'User 2', 'User 3'];
+
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        function updateSearchResults() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredUsers = users.filter(user => user.toLowerCase().includes(searchTerm));
+            renderSearchResults(filteredUsers);
+        }
+
+        function renderSearchResults(results) {
+            searchResults.innerHTML = '';
+            results.forEach(result => {
+                const li = document.createElement('li');
+                li.textContent = result;
+                li.addEventListener('click', () => redirectToChat(result));
+                searchResults.appendChild(li);
+            });
+        }
+
+        function redirectToChat(username) {
+            window.location.href = `chat.html?user=${username}`;
+        }
+
+        searchInput.addEventListener('input', updateSearchResults);
+
+        renderSearchResults(users);
+    </script>
+</body>
+</html>
