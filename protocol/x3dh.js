@@ -27,6 +27,10 @@ const generatePrivateKey = () => {
 // Calculate shared secret
 // Step 5: Derive Shared Secrets (X3DH Key Agreement)
 function deriveSharedSecret(identityKey, ephemeralKey, prekey, ownIdentityPrivateKey, ownPrekeyPrivateKey) {
+
+  // TODO: fix for derive!
+  // TODO: cannot derive. public key is probably not generating properly!
+
   const sharedSecret1 = curve.keyFromPublic(identityKey).derive(ownIdentityPrivateKey);
   const sharedSecret2 = curve.keyFromPublic(ephemeralKey).derive(ownPrekeyPrivateKey);
   const sharedSecret3 = curve.keyFromPublic(prekey).derive(ownPrekeyPrivateKey);
