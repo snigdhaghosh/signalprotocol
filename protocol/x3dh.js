@@ -63,15 +63,21 @@ module.exports = {
     },
     
     ECDHE: async function (pubKey, privKey) {
-        const publicKey = curve.keyFromPublic(pubKey);
-        const privateKey = curve.keyFromSecret(privKey);
-        const sharedSecret = privateKey.derive(publicKey.getPublic());
-        return sharedSecret.toArrayLike(Buffer);
+        await sodium.ready;
+        const sharedSecret = sodium.crypto_scalarmult(privKey, pubKey);
+        return sharedSecret;
     },
-    Ed25519Sign: async function (privKey, message) {
-        const signature = sodium.crypto_sign_detached(message, privKey);
+    
+    Ed25519Sign: async function (privKeySeed, message) {
+        await sodium.ready;
+        const privateKey = sodium.crypto_sign_seed_keypair(privKeySeed).privateKey;
+        const signature = sodium.crypto_sign_detached(message, privateKey);
         return signature;
     },
+    
+    
+    
+    
     Ed25519Verify: async function (pubKey, msg, sig) {
         return sodium.crypto_sign_verify_detached(sig, msg, pubKey);
     },
