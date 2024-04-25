@@ -53,16 +53,15 @@ module.exports = {
         return [T1, T2];
     },
     // Curve 25519 crypto
-    createKeyPair: async function (privKey) {
-        if (!privKey) {
-            privKey = sodium.crypto_sign_keypair().privateKey;
-        }
-        const keyPair = curve.keyFromSecret(privKey);
+    createKeyPair: async function () {
+        await sodium.ready;
+        const { publicKey, privateKey } = sodium.crypto_box_keypair();
         return {
-            pubKey: keyPair.getPublic(),
-            privKey: privKey,
+            pubKey: publicKey,
+            privKey: privateKey
         };
     },
+    
     ECDHE: async function (pubKey, privKey) {
         const publicKey = curve.keyFromPublic(pubKey);
         const privateKey = curve.keyFromSecret(privKey);
