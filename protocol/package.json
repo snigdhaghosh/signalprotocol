@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "crypto": "^1.0.1",
     "curve25519-js": "^0.0.4",
     "elliptic": "^6.5.5",
     "libsodium-wrappers": "^0.7.13"
