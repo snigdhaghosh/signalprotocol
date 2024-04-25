@@ -39,8 +39,8 @@ async function testCryptoUtils() {
 
         // Verify MAC
         const keyMAC = await cryptoUtils.getRandomBytes(32);
-        const mac = await cryptoUtils.sign(keyMAC, dataToHash);
-        await cryptoUtils.verifyMAC(dataToHash, keyMAC, mac, mac.byteLength);
+        const mac = await cryptoUtils.verifyMAC(dataToHash, keyMAC, 32);
+        console.log('MAC:', mac.toString('hex'));
         console.log('MAC Verified!');
     } catch (error) {
         console.error('Error:', error);
