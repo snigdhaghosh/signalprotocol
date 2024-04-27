@@ -6,42 +6,49 @@ async function testCryptoUtils() {
         const randomBytes = cryptoUtils.getRandomBytes(16);
         console.log('Random Bytes:', randomBytes);
 
-        // Encrypt and decrypt data
-        const key = cryptoUtils.getRandomBytes(32); // AES key
-        const iv = cryptoUtils.getRandomBytes(16); // Initialization Vector
-        const plaintext = Buffer.from('Hello, world!', 'utf-8');
-        console.log('Plaintext:', plaintext.toString());
-        const encryptedData = await cryptoUtils.encrypt(key, plaintext, iv);
-        console.log('Encrypted Data:', encryptedData.toString('hex'));
-        const decryptedData = await cryptoUtils.decrypt(key, encryptedData, iv);
-        console.log('Decrypted Data:', decryptedData.toString());
-
-        // Hash data
-        const dataToHash = Buffer.from('Hello, world!', 'utf-8');
-        const hash = await cryptoUtils.hash(dataToHash);
-        console.log('Hash:', hash.toString('hex'));
-
         // Generate key pair
         const keyPair = await cryptoUtils.createKeyPair();
         console.log('Public Key:', keyPair.pubKey.toString('hex'));
         console.log('Private Key:', keyPair.privKey.toString('hex'));
 
-        // ECDH
-        const sharedSecret = await cryptoUtils.ECDHE(keyPair.pubKey, keyPair.privKey);
-        console.log('Shared Secret:', sharedSecret.toString('hex'));
-
-        // Ed25519 Sign and Verify
+        // Sign and verify
         const message = Buffer.from('Hello, world!', 'utf-8');
+        console.log('Message:', message.toString('utf-8'));
+        
+        // Sign the message
         const signature = await cryptoUtils.Ed25519Sign(keyPair.privKey, message);
-        console.log('Signature:', signature.toString('hex'));
+        console.log('Generated Signature:', signature.toString('hex'));
+
+        // Verify the signature
         const isVerified = await cryptoUtils.Ed25519Verify(keyPair.pubKey, message, signature);
-        console.log('Is Verified:', isVerified);
+        console.log('Is Signature Verified:', isVerified);
+
+        if (!isVerified) {
+            console.error('Signature verification failed!');
+        } else {
+            console.log('Signature verification successful!');
+        }
+
+        // Generate MAC
+        const keyMAC = cryptoUtils.getRandomBytes(32);
+        const dataToMAC = Buffer.from('Data to MAC', 'utf-8');
+        const mac = await cryptoUtils.generateMAC(dataToMAC, keyMAC);
+        console.log('Generated MAC:', mac.toString('hex'));
 
         // Verify MAC
-        const keyMAC = await cryptoUtils.getRandomBytes(32);
-        const mac = await cryptoUtils.verifyMAC(dataToHash, keyMAC, 32);
-        console.log('MAC:', mac.toString('hex'));
-        console.log('MAC Verified!');
+        const isMACVerified = await cryptoUtils.verifyMAC(dataToMAC, keyMAC, mac);
+        console.log('Is MAC Verified:', isMACVerified);
+        
+        if (!isMACVerified) {
+            console.error('MAC verification failed!');
+        } else {
+            console.log('MAC verification successful!');
+        }
+
+        // Generate Hash
+        const dataToHash = Buffer.from('Data to hash', 'utf-8');
+        const hash = await cryptoUtils.generateHash(dataToHash);
+        console.log('Generated Hash:', hash.toString('hex'));
     } catch (error) {
         console.error('Error:', error);
     }
