@@ -1,3 +1,8 @@
+// X3DH
+// Curve 22519
+// SHA 256
+
+
 const sodium = require('libsodium-wrappers');
 const crypto = require('crypto');
 

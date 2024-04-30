@@ -1,6 +1,6 @@
 const cryptoUtils = require('./x3dh.js');
 
-async function testCryptoUtils() {
+async function testX3DH() {
     try {
         // Generate random bytes
         const randomBytes = cryptoUtils.getRandomBytes(16);
@@ -54,4 +54,4 @@ async function testCryptoUtils() {
     }
 }
 
-testCryptoUtils();
+testX3DH();
