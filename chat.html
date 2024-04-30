@@ -4,98 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        /* styles.css */
-body, html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    height: 100%;
-}
-
-.chat-container {
-    height: 100%;
-    display: flex;
-}
-
-.user-list {
-    width: 25%;
-    background-color: #f0f0f0;
-    padding: 20px;
-}
-
-.user-list h2 {
-    margin-top: 0;
-}
-
-.user-list ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.user-list li {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #ccc;
-}
-
-.user-list li:hover {
-    background-color: #ddd;
-}
-
-.chat-window {
-    width: 75%;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-header {
-    background-color: #0056b3;
-    color: #fff;
-    padding: 20px;
-    text-align: center;
-    margin: 0;
-}
-
-.chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.chat-input {
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    background-color: #f0f0f0;
-}
-
-.chat-input input[type="text"] {
-    flex-grow: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.chat-input button {
-    padding: 10px 15px;
-    background-color: #0056b3;
-    border: none;
-    color: #fff;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.chat-input button:hover {
-    background-color: #128C7E;
-}
-
-    </style>
+    <link rel="stylesheet" href="styles.css" !important>
 </head>
 <body>
+    <!-- <script src="server.js"></script> -->
+    <script>
+        window.onload = function() {
+            const ws = new WebSocket('ws://localhost:1200');
+
+            ws.onopen = function() {
+                console.log('Connected to WebSocket server');
+            };
+        };
+
+    </script>
+    <!-- <script src="script.js"></script> -->
     <div class="chat-container">
         <div class="user-list">
             <h2>Chats &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<button id="addChatBtn" onclick="redirectToSearch()">+</button></h2> 
@@ -111,33 +34,14 @@ body, html {
             <div class="chat-messages" id="chatMessages">
                 <!-- Chat messages will be dynamically added here -->
             </div>
+
             <div class="chat-input">
                 <input type="text" id="messageInput" placeholder="Type a message...">
-                <button onclick="sendMessage()" id="sendMessageBtn">Send</button>
+                <button onclick="sendMessages()" id="sendMessageBtn">Send</button>
             </div>
-            <!-- <script>
-                 const ws = new WebSocket('ws://localhost:8080');
-
-                    ws.onopen = function () {
-                    console.log('Connected to server');
-                    };
-
-                    ws.onmessage = function (event) {
-                    console.log('Received message:', event.data);
-                    const messagesDiv = document.getElementById('messages');
-                    messagesDiv.innerHTML += `<p>${event.data}</p>`;
-                    };
-
-                    function sendMessage() {
-                    const inputElement = document.getElementById('messageInput');
-                    const message = inputElement.value;
-                    ws.send(message);
-                    inputElement.value = '';
-                    }
-            </script> -->
         </div>
     </div>
-    <script src="script.js"></script>
+    <!-- <script src="script.js"></script> -->
     <script>
         function redirectToSearch() {
             window.location.href = "search.html";

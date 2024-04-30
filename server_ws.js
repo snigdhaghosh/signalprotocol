@@ -1,6 +1,4 @@
-// import { WebSocketServer } from 'ws';
 const { WebSocketServer } = require('ws');
-
 
 const wss = new WebSocketServer({ port: 1200 });
 
@@ -14,4 +12,3 @@ wss.on('connection', function connection(ws) {
 
   ws.send('Connected to the server');
 });
-
