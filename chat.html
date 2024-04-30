@@ -113,8 +113,28 @@ body, html {
             </div>
             <div class="chat-input">
                 <input type="text" id="messageInput" placeholder="Type a message...">
-                <button id="sendMessageBtn">Send</button>
+                <button onclick="sendMessage()" id="sendMessageBtn">Send</button>
             </div>
+            <!-- <script>
+                 const ws = new WebSocket('ws://localhost:8080');
+
+                    ws.onopen = function () {
+                    console.log('Connected to server');
+                    };
+
+                    ws.onmessage = function (event) {
+                    console.log('Received message:', event.data);
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML += `<p>${event.data}</p>`;
+                    };
+
+                    function sendMessage() {
+                    const inputElement = document.getElementById('messageInput');
+                    const message = inputElement.value;
+                    ws.send(message);
+                    inputElement.value = '';
+                    }
+            </script> -->
         </div>
     </div>
     <script src="script.js"></script>
