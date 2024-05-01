@@ -28,6 +28,9 @@ function sendMessage() {
 }
 
 
+// selectedUser -> the user selected to chat
+
+
 
 /// --------- Old Terminal based! -------------------
 // const WebSocket = require('ws');
