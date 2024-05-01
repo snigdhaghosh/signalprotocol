@@ -16,41 +16,6 @@
     ?> -->
 </head>
 <body>
-    <!-- <script src="server.js"></script> -->
-    <script>
-        window.onload = function() {
-            const ws = new WebSocket('ws://localhost:1200');
-
-            ws.onopen = function(event) {
-                console.log('Connected to WebSocket server');
-            };
-
-            ws.onmessage = function(event) {
-                console.log('Received message from server:', event.data);
-                // Display received message in the chat window
-                var chatMessages = document.getElementById('chatMessages');
-                chatMessages.innerHTML += '<p>' + event.data + '</p>';
-            };
-
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
-            };
-
-            ws.onclose = function() {
-                console.log('Disconnected from WebSocket server');
-            };
-
-            // Function to send a message to the server
-            function sendMessage() {
-                var messageInput = document.getElementById('messageInput');
-                var message = messageInput.value;
-                ws.send(message);
-                messageInput.value = ''; // Clear input field after sending
-            }
-
-        };
-
-    </script>
     <!-- <script src="script.js"></script> -->
     <div class="chat-container">
         <div class="user-list">
@@ -74,6 +39,40 @@
             </div>
         </div>
     </div>
+    <script>
+        // window.onload = function() {
+            const ws = new WebSocket('ws://localhost:1200');
+
+            ws.onopen = function(event) {
+                console.log('Connected to WebSocket server');
+            };
+
+            ws.onmessage = function(event) {
+                console.log('Received message from server:', event.data);
+                // Display received message in the chat window
+                var chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML += '<p>' + event.data + '</p>';
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = function() {
+                console.log('Disconnected from WebSocket server');
+            };
+            function sendMessage() {
+                var messageInput = document.getElementById('messageInput');
+                var message = messageInput.value;
+                ws.send(message);
+                messageInput.value = ''; // Clear input field after sending
+            }
+
+        // };
+        // Function to send a message to the server
+       
+
+    </script>
     <!-- <script src="script.js"></script> -->
     <script>
         function redirectToSearch() {
