@@ -1,89 +1,127 @@
-// In doubleRatchet.js
-
-// Import necessary modules
 const cryptoUtils = require('./cryptoUtils');
 
-// Define Double Ratchet class
 class DoubleRatchet {
     constructor() {
-        // Initialize state variables
-        this.rootKey = null;
-        this.senderChainKey = null;
-        this.receiverChainKey = null;
-        this.senderEphemeralKey = null;
-        this.receiverEphemeralKey = null;
         this.sendCounter = 0;
         this.receiveCounter = 0;
+        this.messageBuffer = {};
+        this.initializeKeys().catch(console.error);
     }
 
-    // Initialize the ratchet with initial keys
-    async initialize() {
-        // Generate initial root key
-        this.rootKey = await cryptoUtils.getRandomBytes(32);
-        // Initialize sender and receiver chain keys
-        this.senderChainKey = await cryptoUtils.getRandomBytes(32);
-        this.receiverChainKey = await cryptoUtils.getRandomBytes(32);
+    async initializeKeys() {
+        try {
+            [this.rootKey, this.senderChainKey, this.receiverChainKey] = await Promise.all([
+                cryptoUtils.secureRandomBytes(32),
+                cryptoUtils.secureRandomBytes(32),
+                cryptoUtils.secureRandomBytes(32)
+            ]);
+        } catch (error) {
+            console.error("Failed to initialize keys: ", error.message);
+            throw new Error("Initialization failed");
+        }
     }
 
-    // Perform Diffie-Hellman key agreement
     async performKeyAgreement(privateKey, publicKey) {
-        // Perform key agreement using sender and receiver ephemeral keys
-        // Derive shared secret and update sender and receiver chain keys
-        const sharedSecret = await cryptoUtils.diffieHellman(publicKey, privateKey);
-        this.senderChainKey = await this.kdf(sharedSecret, 'sender');
-        this.receiverChainKey = await this.kdf(sharedSecret, 'receiver');
+        try {
+            const sharedSecret = await cryptoUtils.diffieHellman(publicKey, privateKey);
+            this.rootKey = await this.kdf(sharedSecret, 'newRoot');
+            await this.initializeKeys(); // Reinitialize keys based on the new root key
+        } catch (error) {
+            console.error("Key agreement failed: ", error.message);
+            throw new Error("Key agreement failed");
+        }
     }
 
-    // Encrypt a message
-    async encryptMessage(message) {
-        // Encrypt the message using the current sender chain key
-        // Update sender chain key and send counter
-        const cipherText = await cryptoUtils.encryptAES(this.senderChainKey, message);
+    async encryptMessage(message, senderID, receiverID) {
+        try {
+            if (this.sendCounter >= 100) { // Regular key update not based on threshold
+                await this.initializeKeys();
+            }
+
+            const header = this.constructHeader(senderID, receiverID);
+            const serializedHeader = JSON.stringify(header);
+            const serializedMessage = JSON.stringify({ message });
+            const [encryptedHeader, encryptedMessage] = await Promise.all([
+                cryptoUtils.encryptAES(this.senderChainKey, serializedHeader),
+                cryptoUtils.encryptAES(this.senderChainKey, serializedMessage)
+            ]);
+
+            this.sendCounter++;
+
+            return Buffer.concat([encryptedHeader, encryptedMessage]);
+        } catch (error) {
+            console.error("Encryption failed: ", error.message);
+            throw new Error("Encryption failed");
+        }
+    }
+
+    async decryptMessage(encryptedData, senderID, receiverID) {
+        try {
+            const headerLength = 256; // Assume header is first 256 bytes of encryptedData
+            const decryptedHeader = await cryptoUtils.decryptAES(this.receiverChainKey, encryptedData.slice(0, headerLength));
+            const header = JSON.parse(decryptedHeader);
+
+            if (header.messageCounter === this.receiveCounter) {
+                const decryptedMessage = await this.decryptMessageContent(encryptedData.slice(headerLength));
+                this.processNextMessages(header, senderID, receiverID);
+                return decryptedMessage;
+            } else {
+                this.messageBuffer[header.messageCounter] = encryptedData;
+                return null;
+            }
+        } catch (error) {
+            console.error("Decryption failed: ", error.message);
+            throw new Error("Decryption failed");
+        }
+    }
+
+    async decryptMessageContent(encryptedMessageContent) {
+        return JSON.parse(await cryptoUtils.decryptAES(this.receiverChainKey, encryptedMessageContent)).message;
+    }
+
+    processNextMessages(header, senderID, receiverID) {
+        this.receiveCounter++;
+        this.sendAck(senderID, header.messageID);
+
+        while (this.messageBuffer[this.receiveCounter]) {
+            const encryptedData = this.messageBuffer[this.receiveCounter];
+            delete this.messageBuffer[this.receiveCounter];
+            this.decryptMessage(encryptedData, senderID, receiverID);
+        }
+    }
+
+    sendAck(receiverID, messageID) {
+        // Implement sending an acknowledgment to receiverID about the receipt of messageID
+        // This function needs to be defined based on your app's network handling
+    }
+
+    async kdf(secretKey, role) {
+        try {
+            const salt = role === 'sender' ? this.rootKey : this.senderChainKey;
+            const key = await cryptoUtils.hkdf(secretKey, salt);
+            return key;
+        } catch (error) {
+            console.error("KDF failed: ", error.message);
+            throw new Error("KDF operation failed");
+        }
+    }
+
+    constructHeader(senderID, receiverID) {
+        return {
+            messageID: cryptoUtils.getRandomBytes(16).toString('hex'), // Simulated method for unique message ID
+            senderID,
+            receiverID,
+            messageCounter: this.sendCounter,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    updateSendCounter() {
         this.sendCounter++;
         if (this.sendCounter >= 100) {
-            await this.updateSenderState();
+            this.initializeKeys(); // Reinitialize keys to ensure security
         }
-        return cipherText;
     }
-    
-
-    // Decrypt a message
-    async decryptMessage(encryptedMessage) {
-        // Decrypt the message using the current receiver chain key
-        // Update receiver chain key and receive counter
-        const plainText = await cryptoUtils.decryptAES(this.receiverChainKey, encryptedMessage);
-        this.receiveCounter++;
-        if (this.receiveCounter >= 100) {
-            await this.updateReceiverState();
-        }
-        return plainText;
-    }
-    
-
-    // Update state after sending a message
-    async updateSenderState() {
-        // Update sender ephemeral key, sender chain key, and send counter
-        this.senderEphemeralKey = await cryptoUtils.getRandomBytes(32);
-        this.senderChainKey = await this.kdf(this.senderChainKey, 'sender');
-        this.sendCounter = 0;
-    }
-
-    // Update state after receiving a message
-    async updateReceiverState() {
-        // Update receiver ephemeral key, receiver chain key, and receive counter
-        this.receiverEphemeralKey = await cryptoUtils.getRandomBytes(32);
-        this.receiverChainKey = await this.kdf(this.receiverChainKey, 'receiver');
-        this.receiveCounter = 0;
-    }
-
-    // Key derivation function
-    async kdf(secretKey, role) {
-        // Use HMAC-based Extract-and-Expand Key Derivation Function (HKDF)
-        const salt = role === 'sender' ? this.rootKey : this.senderChainKey;
-        return cryptoUtils.hkdf(secretKey, salt);
-    }
-
-    // Other utility functions as needed
 }
 
 module.exports = DoubleRatchet;
