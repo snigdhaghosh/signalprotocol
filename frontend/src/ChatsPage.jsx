@@ -22,9 +22,7 @@ const ChatsPage = (props) => {
     if (!doubleRatchet) return;
 
     const encryptedMessage = doubleRatchet.encrypt(inputMessage);
-    // Send encryptedMessage to the server
-    // For example:
-    // axios.post("/send-message", { encryptedMessage });
+    
     setInputMessage("");
   };
 
