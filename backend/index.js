@@ -12,13 +12,53 @@ const x3dh = require("./protocol/x3dh.js");
 // Simulated database to store user data
 const users = {};
 
+const mysql = require('mysql2/promise');
+
+const dbConfig = {
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'CS594Proj'
+};
+
+async function connectToDatabase() {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        console.log('Connected to MySQL database');
+        return connection;
+    } catch (error) {
+        console.error('Error connecting to MySQL database:', error.message);
+        throw error;
+    }
+}
+
+// Check if user exists in the database
+async function checkUserExists(username) {
+    const connection = await connectToDatabase();
+    try {
+        const [rows, fields] = await connection.execute('SELECT * FROM server_db WHERE username = ?', [username]);
+        return rows.length > 0;
+    } catch (error) {
+        console.error('Error checking user existence:', error.message);
+        throw error;
+    } finally {
+        await connection.end();
+        console.log('Disconnected from MySQL database');
+    }
+}
+
+
+// for output purpose!
+const preBundleKeysMap = new Map();
+
 app.post("/authenticate", async (req, res) => {
     const { username } = req.body;
     
     try {
+
         // Check if the user exists in the simulated database
-        let user = users[username];
-        
+        let user =  await checkUserExists(username);
+
         // If the user doesn't exist, create a new X3DH key pair for the user
         if (!user) {
             const keyPair = await x3dh.createKeyPair();
@@ -29,8 +69,22 @@ app.post("/authenticate", async (req, res) => {
             };
             // Store the user in the simulated databasee
             users[username] = user;
+
+            preBundleKeysMap.set(username, {
+                identityKeyPair,
+                ephemeralKeyPair
+              });
+    
+            console.log([...preBundleKeysMap.entries()]);
+                preBundleKeysMap.forEach((value, key) => {
+                console.log(`Username: ${key}`);
+                console.log('Prebundle Keys:');
+                console.log('Identity Key Pair:', value.identityKeyPair);
+                console.log('Ephemeral Key Pair:', value.ephemeralKeyPair);
+                console.log('---');
+            });
         }
-        
+
         // Simulated X3DH key exchange
         const serverPublicKey = x3dh.getRandomBytes(32); // Simulating server's public key
         const clientKey = await x3dh.generateHash(user.x3dhPublicKey); // Simulating client's ephemeral key
