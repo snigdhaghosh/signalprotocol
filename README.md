@@ -36,8 +36,8 @@ To run the application, follow these steps:
 - **Database:** Simulated database (users stored in memory)
 
 ## Contributing
-Chandhu Bhumireddy 
-Snigdha Ghosh Dastidar 
-Gunashree Channakeshava 
-Rohan Karle Sudarshan
-Abhiram Vasudev 
+- Chandhu Bhumireddy 
+- Snigdha Ghosh Dastidar 
+- Gunashree Channakeshava 
+- Rohan Karle Sudarshan
+- Abhiram Vasudev 
