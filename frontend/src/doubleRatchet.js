@@ -1,4 +1,5 @@
 // doubleRatchet.js
+const cryptoUtils = require('./cryptoUtils');
 
 class DoubleRatchet {
   constructor(username, secret) {

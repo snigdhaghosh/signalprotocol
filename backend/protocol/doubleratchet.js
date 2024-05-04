@@ -91,8 +91,6 @@ class DoubleRatchet {
     }
 
     sendAck(receiverID, messageID) {
-        // Implement sending an acknowledgment to receiverID about the receipt of messageID
-        // This function needs to be defined based on your app's network handling
     }
 
     async kdf(secretKey, role) {

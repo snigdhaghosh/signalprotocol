@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MultiChatSocket, MultiChatWindow, useMultiChatLogic } from "react-chat-engine-advanced";
-import { DoubleRatchet } from "./doubleRatchet"; // Import DoubleRatchet class from your file
+import { DoubleRatchet } from "./doubleRatchet"; 
 
 const ChatsPage = (props) => {
   const [messages, setMessages] = useState([]);
