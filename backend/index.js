@@ -6,7 +6,7 @@ app.use(express.json());
 app.use(cors({ origin: true }));
 
 const axios = require("axios");
-const x3dh = require ("./protocol/x3dh.js");
+//const x3dh = require ("/");
 
 app.post("/authenticate", async (req, res) => {
     const { username } = req.body;
