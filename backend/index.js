@@ -47,6 +47,43 @@ async function checkUserExists(username) {
     }
 }
 
+// Add user to the database
+async function addUser(username, publicKey, ephemeralKeyPair_pub, ephemeralKeyPair_priv) {
+    const connection = await connectToDatabase();
+
+    try {
+        const [result] = await connection.execute('INSERT INTO server_db (username, identityKeyPair, ephemeralKey_Pub, ephemeralKey_Private) VALUES (?, ?, ?, ?, )', [username, publicKey, ephemeralKeyPair_pub, ephemeralKeyPair_priv]);
+        console.log(`User '${username}' added to the database`);
+        return result.insertId; // Returns the ID of the newly inserted row
+    } catch (error) {
+        console.error('Error adding user to the database:', error.message);
+        throw error;
+    } finally {
+        await connection.end();
+        console.log('Disconnected from MySQL database');
+    }
+}
+
+
+// Add signed prekey for a particular username
+async function addSignedPreKey(username, signedPreKey) {
+    const connection = await connectToDatabase();
+
+    try {
+        const [result] = await connection.execute('UPDATE server_db SET signed_prekey = ? WHERE username = ?', [signedPreKey, username]);
+        if (result.affectedRows === 0) {
+            console.log(`No user found with username '${username}'.`);
+        } else {
+            console.log(`Signed prekey added for user '${username}'.`);
+        }
+    } catch (error) {
+        console.error('Error adding signed prekey:', error.message);
+        throw error;
+    } finally {
+        await connection.end();
+        console.log('Disconnected from MySQL database');
+    }
+}
 
 // for output purpose!
 const preBundleKeysMap = new Map();
@@ -61,14 +98,18 @@ app.post("/authenticate", async (req, res) => {
 
         // If the user doesn't exist, create a new X3DH key pair for the user
         if (!user) {
-            const keyPair = await x3dh.createKeyPair();
+            // const keyPair = await x3dh.createKeyPair();
+            const identityKeyPair = (await x3dh.createKeyPair()).privKey;
+            const ephemeralKeyPair = await x3dh.createKeyPair();
             user = {
                 username: username,
-                x3dhPublicKey: keyPair.pubKey,
-                x3dhPrivateKey: keyPair.privKey
+                x3dhPublicKey: identityKeyPair.pubKey,
+                x3dhPrivateKey: identityKeyPair.privKey
             };
             // Store the user in the simulated databasee
             users[username] = user;
+
+            const userId = await addUser(username, identityKeyPair, ephemeralKeyPair.pubKey, ephemeralKeyPair.privKey);
 
             preBundleKeysMap.set(username, {
                 identityKeyPair,
@@ -92,11 +133,12 @@ app.post("/authenticate", async (req, res) => {
         
         // Log the shared secret (just for simulation purposes)
         console.log("Shared secret:", sharedSecret.toString("hex"));
+
+        await addSignedPreKey(username, sharedSecret.toString("hex"));
         
-        // Simulate storing shared secret securely (in a real scenario, this would be stored securely)
+        
         user.sharedSecret = sharedSecret;
         
-        // Simulate sending the shared secret securely to the client
         // In this simulation, we will just return the username and success message
         return res.status(200).json({ username: username, message: "Authentication successful" });
     } catch (error) {
